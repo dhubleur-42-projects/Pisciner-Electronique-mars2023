@@ -5,12 +5,6 @@
 # define F_CPU 16000000UL
 #endif
 
-void wait_ms(int ms) {
-	for (int i = 0; i < ms; i++) {
-		_delay_ms(1);
-	}
-}
-
 int get_led_pin(int led) {
 	switch (led) {
 		case 1:
@@ -47,7 +41,7 @@ int main() {
 		} else if (current == 1) {
 			direction = 1;
 		}
-		wait_ms(100);
+		_delay_ms(100);
 	}
 
 	return (0);
