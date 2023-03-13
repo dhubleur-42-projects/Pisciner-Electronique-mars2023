@@ -1,5 +1,9 @@
 #include <avr/io.h>
 
+#ifndef F_CPU
+# define F_CPU 1000000UL
+#endif
+
 int main() {
 
 	//PB0 = led

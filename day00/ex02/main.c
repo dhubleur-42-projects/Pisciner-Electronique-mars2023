@@ -1,5 +1,9 @@
 #include <avr/io.h>
 
+#ifndef F_CPU
+# define F_CPU 1000000UL
+#endif
+
 void wait_ms(uint16_t ms) {
 	for (uint16_t i = 0; i < ms; i++) {
 		// Compute how many cycles do we need to wait for 1ms
