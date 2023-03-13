@@ -13,7 +13,7 @@ FLASH_PROGRAMMER=arduino
 all: hex flash
 
 hex:
-	avr-gcc -Wall -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) $(SRC_FILE) -o $(BINARY_FILE)
+	avr-gcc -Wall -Os -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) $(SRC_FILE) -o $(BINARY_FILE)
 	avr-objcopy -O ihex $(BINARY_FILE) $(HEX_FILE)
 
 flash:
