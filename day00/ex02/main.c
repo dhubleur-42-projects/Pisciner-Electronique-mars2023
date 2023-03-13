@@ -1,6 +1,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+void wait_ms(uint16_t ms) {
+	for (uint16_t i = 0; i < ms; i++) {
+		_delay_ms(1);
+	}
+}
+
 int main() {
 
 	//PB0 (Pin0 of PORTB) = led
@@ -11,7 +17,7 @@ int main() {
 	while (1) {
 		//Switch the PB0 state
 		PORTB ^= (1 << PB0);
-		_delay_ms(500);
+		wait_ms(500);
 	}
 
 	return (0);
