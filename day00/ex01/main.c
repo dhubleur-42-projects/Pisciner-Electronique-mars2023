@@ -2,7 +2,7 @@
 
 int main() {
 
-	//PB0 (located in register B) = led
+	//PB0 (Pin0 of PORTB) = led
 
 	//Initialize the PB0 pin as an output
 	DDRB = (1 << PB0);
