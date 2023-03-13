@@ -5,17 +5,16 @@ HEX_FILE=$(FILE_NAME).hex
 
 DEVICE=atmega328p
 F_CPU=16000000UL
+PORT=/dev/ttyUSB0
 
 FLASH_BAUDRATE=115200
 FLASH_PROGRAMMER=arduino
-
-PORT=/dev/ttyUSB0
 
 all: hex flash
 
 hex:
 	avr-gcc -Wall -Os -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) -c $(SRC_FILE) -o $(BINARY_FILE)
-	avr-objcopy -j .text -j .data -O ihex $(BINARY_FILE) $(HEX_FILE)
+	avr-objcopy -O ihex $(BINARY_FILE) $(HEX_FILE)
 
 flash:
 	avrdude -p $(DEVICE) -c $(FLASH_PROGRAMMER) -P ${PORT} -b $(FLASH_BAUDRATE) -U flash:w:$(HEX_FILE)
