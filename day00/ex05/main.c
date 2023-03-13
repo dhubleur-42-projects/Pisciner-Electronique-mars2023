@@ -5,12 +5,6 @@
 # define F_CPU 16000000UL
 #endif
 
-void wait_ms(int ms) {
-	for (int i = 0; i < ms; i++) {
-		_delay_ms(1);
-	}
-}
-
 int plusButtonPressDetection() {
 	static int state = 0;
 	int buttonState = !(PIND & (1 << PD2));
