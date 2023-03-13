@@ -1,9 +1,12 @@
 #include <avr/io.h>
-#include <util/delay.h>
 
 void wait_ms(uint16_t ms) {
 	for (uint16_t i = 0; i < ms; i++) {
-		_delay_ms(1);
+		// How many cycles do we need to wait for 1ms?
+		uint16_t cycles = F_CPU / 1000;		
+		for (uint16_t j = 0; j < cycles; j++) {
+			asm volatile ("nop");
+		}
 	}
 }
 
