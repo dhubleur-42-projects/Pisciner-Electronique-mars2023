@@ -1,16 +1,13 @@
 #include <avr/io.h>
 
 #ifndef F_CPU
-# define F_CPU 1000000UL
+# define F_CPU 16000000UL
 #endif
 
-void wait_ms(uint16_t ms) {
-	for (uint16_t i = 0; i < ms; i++) {
-		// Compute how many cycles do we need to wait for 1ms
-		uint16_t cycles = F_CPU / 1000;		
-		for (uint16_t j = 0; j < cycles; j++) {
-			asm volatile ("nop");
-		}
+void wait_ms(unsigned long ms) {
+	unsigned long cycles = F_CPU / 1000 * ms / 11; // 11 is approx. the number of CPU cycles per loop
+	for (unsigned long i = 0; i < cycles; i++) {
+		__asm__ __volatile__ ("nop");
 	}
 }
 

@@ -2,7 +2,7 @@
 #include <util/delay.h>
 
 #ifndef F_CPU
-# define F_CPU 1000000UL
+# define F_CPU 16000000UL
 #endif
 
 void wait_ms(int ms) {
@@ -47,7 +47,7 @@ int main() {
 		} else if (current == 1) {
 			direction = 1;
 		}
-		wait_ms(1000);
+		wait_ms(100);
 	}
 
 	return (0);
