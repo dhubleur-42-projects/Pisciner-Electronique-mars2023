@@ -24,13 +24,13 @@ int main() {
 	
 	//Set the top value to 1s (15625 * 1 = 15625)
 	ICR1 = 15625;
-	//Reset the timer to 0 when it reaches the top value
-	TCCR1A |= (1 << COM1A1);
 
 	//Set the comparing value to blink after 0.9s (15625 * 0.9 = 14062)
 	OCR1A = 14062;
 
-	//Toggle the PB1 pin when timer reaches the comparing value
+	//Off the PB1 pin when timer reaches the top value
+	TCCR1A |= (1 << COM1A1);
+	//On the PB1 pin when timer reaches the comparing value
 	TCCR1A |= (1 << COM1A0);
 
 	while (1) {
