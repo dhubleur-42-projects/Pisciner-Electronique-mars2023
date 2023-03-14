@@ -23,10 +23,10 @@ int main() {
 	TCCR1B |= (1 << CS12) | (1 << CS10);
 	
 	//Set the top value to 1s (15625 * 1 = 15625)
-	ICR1 = 15625;
+	ICR1 = F_CPU / 1024 - 1;
 
 	//Set the comparing value to blink after 0.9s (15625 * 0.9 = 14062)
-	OCR1A = 14062;
+	OCR1A = (F_CPU / 1024 - 1) * 0.9;
 
 	//On the PB1 pin when timer reaches the comparing value
 	//Off the PB1 pin when timer is on bottom

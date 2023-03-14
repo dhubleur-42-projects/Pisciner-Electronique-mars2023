@@ -22,7 +22,7 @@ int main() {
 	//Set the prescaler to 1024 (16MHz / 1024 = 15625Hz)
 	TCCR1B |= (1 << CS12) | (1 << CS10);
 	//Set the comparing value to blink every 0.5s (15625 / 2 = 7812)
-	OCR1A = 7812;
+	OCR1A = (F_CPU / 1024 - 1) / 2 ;
 	
 	//Setup timer to change OC1A (PB1) state on compare match
 	TCCR1A |= (1 << COM1A0);
