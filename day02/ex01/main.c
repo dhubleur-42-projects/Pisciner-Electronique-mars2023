@@ -6,11 +6,13 @@
 # define F_CPU 16000000UL
 #endif
 
+#define TIMER1_DURATION 0.1
+
 float volatile ratio = 0.9;
 float volatile direction = 0.01;
 
 void set_ratio() {
-	OCR1A = (F_CPU / 1024 - 1) * ratio;
+	OCR1A = (F_CPU / 1024 - 1) * TIMER1_DURATION * ratio;
 }
 
 //Interrupt when timer0 reach top
@@ -32,7 +34,6 @@ int main() {
 
 	//Initialize the PB1 pin as an output
 	DDRB = (1 << PB1);
-	DDRB = (1 << PB2);
 
 	//Initialize the timers
 	TCNT1 = 0;
@@ -52,8 +53,8 @@ int main() {
 	//Set the timer0 prescalar to 1024 (16MHz / 1024 = 15625Hz)
 	TCCR0B |= (1 << CS02) | (1 << CS00);
 	
-	//Set the timer1 top value to 1s (15625 * 1 = 15625)
-	ICR1 = F_CPU / 1024 - 1;
+	//Set the timer1 top value to 0.1s (15625 * 0.1 = 15625)
+	ICR1 = (F_CPU / 1024 - 1) * TIMER1_DURATION;
 
 	//Set the timer0 top value to 0.01s (15625 * 0.01 = 156)
 	TCNT0 = (F_CPU / 1024 - 1) * 0.01;
