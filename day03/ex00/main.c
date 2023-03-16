@@ -27,7 +27,31 @@ void uart_tx(char c) {
 	UDR0 = c;
 }
 
+//Timer1 overflow interrupt
+ISR(TIMER1_OVF_vect) {
+	uart_tx('Z');
+}
+
 int main() {
 	uart_init();
-	uart_tx('Z');
+	
+	//Initialize the timer
+	TCNT1 = 0;
+
+	//Set the timer to interrupt and clear on overflow
+	TIFR1  = (1 << TOV1);
+	TIMSK1 = (1 << TOIE1);
+
+	//Set the timer1 prescaler to 1024
+	TCCR1B |= (1 << CS12) | (1 << CS10);
+
+	//Set the timer1 to 1s
+	OCR1A = (F_CPU / 1024 - 1);
+
+	//Enable global interrupts
+	sei();
+
+	while(1) {
+		//Do nothing
+	}
 }
