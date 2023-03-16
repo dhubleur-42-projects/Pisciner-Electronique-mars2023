@@ -1,7 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
-#include <string.h>
 
 #ifndef F_CPU
 # define F_CPU 16000000UL
@@ -49,6 +48,13 @@ char uart_rx(void) {
 void bzero(char *str, int len) {
 	for (int i = 0; i < len; i++)
 		str[i] = 0;
+}
+
+int strcmp(char *str1, char *str2) {
+	int i = 0;
+	while (str1[i] && str2[i] && str1[i] == str2[i])
+		i++;
+	return str1[i] - str2[i];
 }
 
 void ask_user(char *prompt, char buffer[32], char echo) {
@@ -113,23 +119,26 @@ int main() {
 	uart_init();
 	led_init();
 
-	char username[32];
-	bzero(username, 32);
-	char password[32];
-	bzero(password, 32);
+	for(;;) {
+		char username[32];
+		bzero(username, 32);
+		char password[32];
+		bzero(password, 32);
 
-	uart_printstr("Login:\r\n");
+		uart_printstr("Login:\r\n");
 
-	ask_user("\tUsername: ", username, 0);
-	ask_user("\tPassword: ", password, '*');
+		ask_user("\tUsername: ", username, 0);
+		ask_user("\tPassword: ", password, '*');
 
-	if (strcmp(username, "dhubleur") == 0 && strcmp(password, "1234567890") == 0) {
-		uart_printstr("Hello ");
-		uart_printstr(username);
-		uart_printstr("!\r\n");
-		led_blink();
-	} else {
-		uart_printstr("Invalid username or password!\r\n");
+		if (strcmp(username, "dhubleur") == 0 && strcmp(password, "1234567890") == 0) {
+			uart_printstr("Hello ");
+			uart_printstr(username);
+			uart_printstr("!\r\n");
+			led_blink();
+			break;
+		} else {
+			uart_printstr("Invalid username or password!\r\n");
+		}
 	}
 
 }
