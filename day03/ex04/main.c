@@ -51,32 +51,36 @@ void bzero(char *str, int len) {
 		str[i] = 0;
 }
 
-void ask_user(char *prompt, char buffer[32], int *buffer_len, char echo) {
+void ask_user(char *prompt, char buffer[32], char echo) {
+	int len = 0;
 	uart_printstr(prompt);
 	while (1) {
 		char c = uart_rx();
 		
 		//Enter
 		if (c == '\r') {
+			if (len == 0)
+				continue;
 			uart_printstr("\r\n");
 			return;
 		}
 
 		//Backspace
 		if (c == 0x7f) {
-			if (*buffer_len > 0) {
-				*buffer_len -= 1;
-				buffer[*buffer_len] = 0;
+			if (len > 0) {
+				len -= 1;
+				buffer[len] = 0;
 				uart_printstr("\b \b");
 			}
 			continue;
 		}
 
 		//Other
-		if (*buffer_len < 32)
-		{
-			buffer[*buffer_len] = c;
-			*buffer_len += 1;
+		if (len < 31) {
+			buffer[len] = c;
+			len += 1;
+		} else {
+			continue;
 		}
 
 		//Echo
@@ -111,23 +115,15 @@ int main() {
 
 	char username[32];
 	bzero(username, 32);
-	int username_len = 0;
 	char password[32];
 	bzero(password, 32);
-	int password_len = 0;
 
 	uart_printstr("Login:\r\n");
 
-	ask_user("\tUsername: ", username, &username_len, 0);
-	ask_user("\tPassword: ", password, &password_len, '*');
+	ask_user("\tUsername: ", username, 0);
+	ask_user("\tPassword: ", password, '*');
 
-	int result = 1;
-	if (username_len >= 32 || password_len >= 32)
-		result = 0;
-	if (strcmp(username, "dhubleur") != 0 || strcmp(password, "1234567890") != 0)
-		result = 0;
-
-	if (result) {
+	if (strcmp(username, "dhubleur") == 0 && strcmp(password, "1234567890") == 0) {
 		uart_printstr("Hello ");
 		uart_printstr(username);
 		uart_printstr("!\r\n");
