@@ -55,10 +55,14 @@ void ask_user(char *prompt, char buffer[32], int *buffer_len, char echo) {
 	uart_printstr(prompt);
 	while (1) {
 		char c = uart_rx();
+		
+		//Enter
 		if (c == '\r') {
 			uart_printstr("\r\n");
 			return;
 		}
+
+		//Backspace
 		if (c == 0x7f) {
 			if (*buffer_len > 0) {
 				*buffer_len -= 1;
@@ -67,11 +71,15 @@ void ask_user(char *prompt, char buffer[32], int *buffer_len, char echo) {
 			}
 			continue;
 		}
+
+		//Other
 		if (*buffer_len < 32)
 		{
 			buffer[*buffer_len] = c;
 			*buffer_len += 1;
 		}
+
+		//Echo
 		if (echo == 0)
 			uart_tx(c);
 		else
