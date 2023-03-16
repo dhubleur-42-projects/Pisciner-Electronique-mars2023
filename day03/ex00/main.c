@@ -1,4 +1,6 @@
 #include <avr/io.h>
+#include <util/delay.h>
+#include <avr/interrupt.h>
 
 #ifndef F_CPU
 # define F_CPU 16000000UL
@@ -28,7 +30,7 @@ void uart_tx(char c) {
 }
 
 //Timer1 overflow interrupt
-ISR(TIMER1_OVF_vect) {
+ISR(TIMER1_COMPA_vect) {
 	uart_tx('Z');
 }
 
@@ -38,9 +40,11 @@ int main() {
 	//Initialize the timer
 	TCNT1 = 0;
 
-	//Set the timer to interrupt and clear on overflow
-	TIFR1  = (1 << TOV1);
-	TIMSK1 = (1 << TOIE1);
+	//Set the timer to CTC mode
+	TCCR1B = (1 << WGM12);
+
+	//Enable timer1 overflow interrupt
+	TIMSK1 = (1<<OCIE1A);
 
 	//Set the timer1 prescaler to 1024
 	TCCR1B |= (1 << CS12) | (1 << CS10);
