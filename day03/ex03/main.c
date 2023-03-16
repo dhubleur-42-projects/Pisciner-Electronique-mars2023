@@ -18,6 +18,12 @@ void uart_init() {
 
 	//Set frame format: 8data, 1stop bit
 	UCSR0C = (1<<USBS0) | (3<<UCSZ00);
+
+	//Enable interrupts
+	UCSR0B |= (1<<RXCIE0);
+
+	//Enable global interrupts
+	sei();
 }
 
 //Write a character to PC serial port
@@ -37,22 +43,29 @@ void uart_printstr(char *str) {
 }
 
 //Read a character from PC serial port
-char uart_rx(void) {
-	//Wait for data to be received
-	while (!(UCSR0A & (1<<RXC0)));
+// char uart_rx(void) {
+// 	//Wait for data to be received
+// 	while (!(UCSR0A & (1<<RXC0)));
 
-	//Get and return received data from buffer
-	return UDR0;
+// 	//Get and return received data from buffer
+// 	return UDR0;
+// }
+
+ISR(USART_RX_vect) {
+	char c = UDR0;
+	if (c >= 'a' && c <= 'z') {
+		c -= 32;
+	} else if (c >= 'A' && c <= 'Z') {
+		c += 32;
+	}
+	uart_tx(c);
+	uart_printstr("\r\n");
 }
 
 int main() {
 	uart_init();
 
 	while (1) {
-		char c = uart_rx();
-		uart_printstr("You typed: ");
-		uart_tx(c);
-		uart_printstr("\r\n");
 	}
 
 }
