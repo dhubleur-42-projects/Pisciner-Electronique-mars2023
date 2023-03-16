@@ -59,7 +59,6 @@ ISR(USART_RX_vect) {
 		c += 32;
 	}
 	uart_tx(c);
-	uart_printstr("\r\n");
 }
 
 int main() {
