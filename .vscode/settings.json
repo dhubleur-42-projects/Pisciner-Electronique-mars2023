@@ -2,6 +2,7 @@
 	"files.associations": {
 		"io.h": "c",
 		"delay.h": "c",
-		"interrupt.h": "c"
+		"interrupt.h": "c",
+		"compare": "c"
 	}
 }

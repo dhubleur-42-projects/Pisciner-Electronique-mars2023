@@ -1,0 +1,3 @@
+[submodule "day04/rush00"]
+	path = day04/rush00
+	url = git@github.com:afaure42/piscine_elec_rush00.git
