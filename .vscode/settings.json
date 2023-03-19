@@ -3,6 +3,9 @@
 		"io.h": "c",
 		"delay.h": "c",
 		"interrupt.h": "c",
-		"compare": "c"
+		"compare": "c",
+		"twi.h": "c",
+		"slave_command.h": "c",
+		"main.h": "c"
 	}
 }
