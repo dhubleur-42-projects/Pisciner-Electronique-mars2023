@@ -64,3 +64,42 @@ char uart_readchar(void) {
 	//Get and return received data from buffer
 	return UDR0;
 }
+
+void uart_readline(char *buffer, int size, char echo) {
+	int len = 0;
+	while (1) {
+		char c = uart_readchar();
+		
+		//Enter
+		if (c == '\r') {
+			if (len == 0)
+				continue;
+			uart_printstr("\r\n");
+			return;
+		}
+
+		//Backspace
+		if (c == 0x7f) {
+			if (len > 0) {
+				len -= 1;
+				buffer[len] = 0;
+				uart_printstr("\b \b");
+			}
+			continue;
+		}
+
+		//Other
+		if (len < size) {
+			buffer[len] = c;
+			len += 1;
+		} else {
+			continue;
+		}
+
+		//Echo
+		if (echo == 0)
+			uart_printchar(c);
+		else
+			uart_printchar(echo);
+	}
+}
