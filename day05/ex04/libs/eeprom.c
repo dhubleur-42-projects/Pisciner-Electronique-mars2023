@@ -15,6 +15,11 @@ void read_block(size_t *offset, block_info *info) {
 	info->id = eeprom_read_word((uint16_t *)(*offset));
 	*offset += 2;
 	info->length = eeprom_read_word((uint16_t *)(*offset));
+	uart_printstr("Readed length: ");
+	uart_printbr_16(info->length);
+	uart_printstr(" at offset: ");
+	uart_printbr_16(*offset);
+	uart_nl();
 	*offset += 2;
 	info->offset = *offset;
 	*offset += info->length;
@@ -30,19 +35,16 @@ bool find_info(uint16_t id, block_info *info) {
 	while (offset < EEPROM_SIZE) {
 		uint8_t magic = eeprom_read_byte((uint8_t *)offset);
 		if (magic == EEPROM_MAGIC_START) {
-			uart_printstr("Found magic start at offset: ");
-			uart_printbr(offset);
-			uart_nl();
 			offset++;
 			read_block(&offset, info);
 			if (info->id == id) {
 				uart_printstr("Found id: ");
-				uart_printbr(id);
+				uart_printbr_16(id);
 				uart_nl();
 				return true;
 			}
 			uart_printstr("Not Found id: ");
-			uart_printbr(id);
+			uart_printbr_16(id);
 			uart_nl();
 		} else if (magic == EEPROM_MAGIC_END)
 			return false;
@@ -67,7 +69,7 @@ bool is_available_space(size_t start_offset, uint16_t length) {
 bool eepromalloc_free(uint16_t id) {
 	block_info info;
 	if (find_info(id, &info)) {
-		eeprom_write_word((uint16_t *)info.offset - 5, 0x0);
+		eeprom_write_byte((uint8_t *)info.offset - 5, 0x0);
 		return true;
 	}
 	return false;
@@ -95,7 +97,7 @@ bool eepromalloc_write(uint16_t id, void *buffer, uint16_t length) {
 	uart_printstr("Writing buffer: ");
 	uart_printstr(buffer);
 	uart_printstr(" | id: ");
-	uart_printbr(id);
+	uart_printbr_16(id);
 	uart_nl();
 	if (find_info(id, &info)) {
 		if (info.length == length) {
@@ -132,12 +134,12 @@ bool eepromalloc_write(uint16_t id, void *buffer, uint16_t length) {
 		offset++;
 		eeprom_write_word((uint16_t *)offset, id);
 		offset += 2;
-		uart_printstr("Writing length: ");
-		uart_printbr(length);
-		uart_printstr(" | offset: ");
-		uart_printbr(offset);
-		uart_nl();
 		eeprom_write_word((uint16_t *)offset, length);
+		uart_printstr("Writed length: ");
+		uart_printbr_16(eeprom_read_word((uint16_t *)offset));
+		uart_printstr(" | offset: ");
+		uart_printbr_8(offset);
+		uart_nl();
 		offset += 2;
 		uint8_t *ptr = (uint8_t *)buffer;
 		for (uint16_t i = 0; i < length; i++) {
@@ -155,11 +157,11 @@ bool eepromalloc_read(uint16_t id, void *buffer, uint16_t length) {
 	block_info info;
 	if (find_info(id, &info)) {
 		uart_printstr("Found info: ");
-		uart_printbr(info.id);
+		uart_printbr_16(info.id);
 		uart_printstr(" | Length: ");
-		uart_printbr(info.length);
+		uart_printbr_16(info.length);
 		uart_printstr(" | id: ");
-		uart_printbr(id);
+		uart_printbr_16(id);
 		uart_nl();
 		if (length <= info.length) {
 			size_t offset = info.offset;

@@ -43,14 +43,35 @@ void uart_printstrnl(char *str) {
 	uart_nl();
 }
 
-void uart_printbr(int n) {
+void uart_printbr_8(int8_t n) {
 	if (n < 0) {
 		uart_printchar('-');
 		n = -n;
 	}
 
 	if (n / 10) {
-		uart_printbr(n / 10);
+		uart_printbr_8(n / 10);
+	}
+
+	uart_printchar(n % 10 + '0');
+}
+
+void uart_printbr_16(uint16_t n) {
+	if (n / 10) {
+		uart_printbr_16(n / 10);
+	}
+
+	uart_printchar(n % 10 + '0');
+}
+
+void uart_printbr_32(int32_t n) {
+	if (n < 0) {
+		uart_printchar('-');
+		n = -n;
+	}
+
+	if (n / 10) {
+		uart_printbr_32(n / 10);
 	}
 
 	uart_printchar(n % 10 + '0');

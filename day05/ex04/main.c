@@ -11,7 +11,7 @@
 # define F_CPU 16000000UL
 #endif
 
-volatile int16_t global_id = 0;
+volatile uint16_t global_id = 0;
 
 typedef enum e_cmd {
 	CMD_READ,
@@ -100,19 +100,19 @@ bool get_arg(char buffer[256], char arg[256], int arg_to_found) {
 
 int read_key(char key[256], char value[256]) {
 	uart_printstr("Global id (read_key): ");
-	uart_printbr(global_id);
+	uart_printbr_16(global_id);
 	uart_nl();
 	char read_key[256];
-	for (int16_t i = 1; i < global_id; i += 2) {
+	for (uint16_t i = 1; i < global_id; i += 2) {
 		bzero(read_key, 256);
 		uart_printstr("Test read: ");
-		uart_printbr(i);
+		uart_printbr_16(i);
 		uart_nl();
 		if (eepromalloc_read(i, read_key, 256)) {
 			uart_printstr("Read: ");
 			uart_printstr(read_key);
 			uart_printstr(" at id: ");
-			uart_printbr(i);
+			uart_printbr_16(i);
 			uart_nl();
 			uart_printstr("Compare: |");
 			uart_printstr(read_key);
@@ -138,7 +138,7 @@ void read_command(char key[256]) {
 	uart_printstr(key);
 	uart_nl();
 	uart_printstr("Global id (read_command): ");
-	uart_printbr(global_id);
+	uart_printbr_16(global_id);
 	uart_nl();
 	char value[256];
 	bzero(value, 256);
@@ -160,7 +160,7 @@ void write_command(char key[256], char value[256]) {
 			return;
 		}
 		uart_printstr("Value stored at id: ");
-		uart_printbr(global_id);
+		uart_printbr_16(global_id);
 		uart_nl();
 	} else {
 		if (!eepromalloc_write(stored, value, (int16_t)ft_strlen(value))) {
@@ -251,17 +251,9 @@ int main() {
 
 	i2c_init();
 
-	eepromalloc_free(0);
-	eepromalloc_free(1);
-	eepromalloc_free(2);
-	eepromalloc_free(3);
-	eepromalloc_free(4);
-	eepromalloc_free(5);
-	eepromalloc_free(6);
-	eepromalloc_free(7);
-	eepromalloc_free(8);
-	eepromalloc_free(9);
-	eepromalloc_free(10);
+	for (int i = 0; i < 100; i++) {
+		eepromalloc_free(i);
+	}
 
 	// if (!eepromalloc_read(0, &global_id, 2)) {
 		global_id = 0;
@@ -272,7 +264,7 @@ int main() {
 
 	for(;;) {
 		uart_printstr("Global id (main): ");
-		uart_printbr(global_id);
+		uart_printbr_16(global_id);
 		uart_nl();
 		uart_printstr("> ");
 		bzero(buffer, 256);
