@@ -13,7 +13,7 @@ FLASH_PROGRAMMER=arduino
 all: flash
 
 %.out: %.c
-	avr-gcc -Wall -I libs -Os -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) -c $< -o $@
+	avr-gcc -Wall -Wextra -I libs -Os -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) -c $< -o $@
 
 $(LINK_FILE): $(BINARY_FILES)
 	avr-gcc -Wall -I libs -Os -D F_CPU=$(F_CPU) -mmcu=$(DEVICE) $(BINARY_FILES) -o $(LINK_FILE)
@@ -27,6 +27,6 @@ flash: hex
 	avrdude -p $(DEVICE) -c $(FLASH_PROGRAMMER) -P ${PORT} -b $(FLASH_BAUDRATE) -U flash:w:$(HEX_FILE)
 
 clean:
-	rm -f $(BINARY_FILE) $(HEX_FILE)
+	rm -f $(BINARY_FILES) $(HEX_FILE)
 
 re: clean all

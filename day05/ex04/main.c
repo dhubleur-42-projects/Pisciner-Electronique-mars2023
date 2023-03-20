@@ -11,6 +11,8 @@
 # define F_CPU 16000000UL
 #endif
 
+volatile int16_t global_id = 0;
+
 typedef enum e_cmd {
 	CMD_READ,
 	CMD_WRITE,
@@ -38,6 +40,14 @@ void ft_strcpy(char *dest, char *src) {
 		i++;
 	}
 	dest[i] = 0;
+}
+
+int ft_strlen(char *str) {
+	int i = 0;
+	while (str[i]) {
+		i++;
+	}
+	return i;
 }
 
 bool get_arg(char buffer[256], char arg[256], int arg_to_found) {
@@ -88,18 +98,77 @@ bool get_arg(char buffer[256], char arg[256], int arg_to_found) {
 	return true;
 }
 
+int read_key(char key[256], char value[256]) {
+	uart_printstr("Global id (read_key): ");
+	uart_printbr(global_id);
+	uart_nl();
+	char read_key[256];
+	for (int16_t i = 1; i < global_id; i += 2) {
+		bzero(read_key, 256);
+		uart_printstr("Test read: ");
+		uart_printbr(i);
+		uart_nl();
+		if (eepromalloc_read(i, read_key, 256)) {
+			uart_printstr("Read: ");
+			uart_printstr(read_key);
+			uart_printstr(" at id: ");
+			uart_printbr(i);
+			uart_nl();
+			uart_printstr("Compare: |");
+			uart_printstr(read_key);
+			uart_printstr("| with |");
+			uart_printstr(key);
+			uart_printstr("|");
+			uart_nl();
+			if (strcmp(read_key, key) == 0) {
+				uart_printstr("Found: ");
+				eepromalloc_read(i + 1, value, 256);
+				uart_printstrnl(value);
+				return i + 1;
+			}
+			uart_printstrnl("Not equal");
+		}
+	}
+	uart_printstrnl("READ KEY NOT FOUND");
+	return 0;
+}
+
 void read_command(char key[256]) {
 	uart_printstr("Read: ");
 	uart_printstr(key);
 	uart_nl();
+	uart_printstr("Global id (read_command): ");
+	uart_printbr(global_id);
+	uart_nl();
+	char value[256];
+	bzero(value, 256);
+	if (read_key(key, value)) {
+		uart_printstr(value);
+		uart_nl();
+	} else {
+		uart_printstr(key);
+		uart_printstrnl(" not found");
+	}
 }
 
 void write_command(char key[256], char value[256]) {
-	uart_printstr("Write: ");
-	uart_printstr(key);
-	uart_printstr(" = ");
-	uart_printstr(value);
-	uart_nl();
+	char already_value[256];
+	int stored;
+	if ((stored = read_key(key, already_value)) == 0) {
+		if (!eepromalloc_write(++global_id, key, (int16_t)ft_strlen(key)) || !eepromalloc_write(++global_id, value, (int16_t)ft_strlen(value))) {
+			uart_printstrnl("Error: eeprom full");
+			return;
+		}
+		uart_printstr("Value stored at id: ");
+		uart_printbr(global_id);
+		uart_nl();
+	} else {
+		if (!eepromalloc_write(stored, value, (int16_t)ft_strlen(value))) {
+			uart_printstrnl("Error: eeprom full");
+			return;
+		}
+		uart_printstrnl("Value updated");
+	}
 }
 
 void forget_command(char key[256]) {
@@ -182,11 +251,29 @@ int main() {
 
 	i2c_init();
 
-	sei();
+	eepromalloc_free(0);
+	eepromalloc_free(1);
+	eepromalloc_free(2);
+	eepromalloc_free(3);
+	eepromalloc_free(4);
+	eepromalloc_free(5);
+	eepromalloc_free(6);
+	eepromalloc_free(7);
+	eepromalloc_free(8);
+	eepromalloc_free(9);
+	eepromalloc_free(10);
+
+	// if (!eepromalloc_read(0, &global_id, 2)) {
+		global_id = 0;
+		// eepromalloc_write(0, (int16_t *)&global_id, 2);
+	// }
 
 	char buffer[256];
 
 	for(;;) {
+		uart_printstr("Global id (main): ");
+		uart_printbr(global_id);
+		uart_nl();
 		uart_printstr("> ");
 		bzero(buffer, 256);
 		uart_readline(buffer, 256, 0);
