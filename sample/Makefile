@@ -1,4 +1,4 @@
-SRCS = main.c libs/i2c.c libs/uart.c libs/eeprom.c
+SRCS = main.c libs/i2c.c libs/uart.c libs/eeprom.c libs/pins.c
 BINARY_FILES=$(SRCS:.c=.out)
 LINK_FILE=main.bin
 HEX_FILE=main.hex
@@ -27,6 +27,14 @@ flash: hex
 	avrdude -p $(DEVICE) -c $(FLASH_PROGRAMMER) -P ${PORT} -b $(FLASH_BAUDRATE) -U flash:w:$(HEX_FILE)
 
 clean:
-	rm -f $(BINARY_FILE) $(HEX_FILE)
+	rm -f $(BINARY_FILES)
 
-re: clean all
+fclean: clean
+	rm -f $(LINK_FILE) $(HEX_FILE)
+
+screen: flash
+	screen $(PORT) 115200
+
+re: fclean all
+
+.PHONY: all hex flash clean fclean screen re
