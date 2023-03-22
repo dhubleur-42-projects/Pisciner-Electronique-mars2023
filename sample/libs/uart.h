@@ -18,6 +18,7 @@ void uart_printnbr_u16(uint16_t n);
 void uart_printnbr_16(int16_t n);
 void uart_printnbr_u32(uint32_t n);
 void uart_printnbr_32(int32_t n);
+void uart_print_byte_hexa(uint8_t n);
 char uart_readchar(void);
 void uart_readline(char *buffer, int size, char echo);
 void bzero(char *s, int n);

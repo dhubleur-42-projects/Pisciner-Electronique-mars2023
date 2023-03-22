@@ -134,6 +134,12 @@ void uart_printnbr_32(int32_t n) {
 	uart_printchar(n % 10 + '0');
 }
 
+void uart_print_byte_hexa(uint8_t n) {
+	char base[] = "0123456789ABCDEF";
+	uart_printchar(base[n >> 4]);
+	uart_printchar(base[n & 0x0F]);
+}
+
 char uart_readchar(void) {
 	//Wait for data to be received
 	while (!(UCSR0A & (1<<RXC0)));
