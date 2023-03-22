@@ -18,7 +18,7 @@ void adc_init() {
 	ADCSRA = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 }
 
-uint8_t adc_read(int mux3, int mux2, int mux1, int mux0) {
+uint16_t adc_read(int mux3, int mux2, int mux1, int mux0) {
 	//Enable ADC
 	ADCSRA |= (1 << ADEN);
 
