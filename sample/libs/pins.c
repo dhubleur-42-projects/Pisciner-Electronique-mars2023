@@ -9,7 +9,7 @@ int8_t extract_port(PIN pin) {
 		case LED_D3:
 			return PB2;
 		case LED_D4:
-			return PB3;
+			return PB4;
 		case BUTTON_SW1:
 			return PD2;
 		case BUTTON_SW2:

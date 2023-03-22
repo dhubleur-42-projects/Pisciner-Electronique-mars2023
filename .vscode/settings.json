@@ -6,6 +6,7 @@
 		"compare": "c",
 		"twi.h": "c",
 		"slave_command.h": "c",
-		"main.h": "c"
+		"main.h": "c",
+		"pins.h": "c"
 	}
 }
