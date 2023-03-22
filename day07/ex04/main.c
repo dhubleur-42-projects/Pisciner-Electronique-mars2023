@@ -105,12 +105,9 @@ int main() {
 
 	init_rgb();
 	adc_init();
-	uart_init();
 
 	for(;;) {
 		uint8_t value = adc_read(0, 0, 0, 0);
-		uart_printnbr_u8(value);
-		uart_ln();
 		wheel(value);
 
 		if (value >= (255 / 4)) {
@@ -132,7 +129,6 @@ int main() {
 		}
 
 		if (value == 255) {
-			uart_printstrln("LED D4 ON");
 			pin_set(LED_D4, HIGH);
 		} else {
 			pin_set(LED_D4, LOW);
