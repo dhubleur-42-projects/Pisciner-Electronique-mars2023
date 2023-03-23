@@ -91,7 +91,7 @@ char *ft_strchr(char *str, char c) {
 	return NULL;
 }
 
-void wheel(uint8_t pos) {
+apa102_led wheel(uint8_t pos) {
 	apa102_led led = {0x03, 0, 0, 0};
 	pos = 255 - pos;
 	if (pos < 85) {
@@ -109,12 +109,12 @@ void wheel(uint8_t pos) {
 		led.g = 255 - pos * 3;
 		led.b = 0;
 	}
-	apa102_set_all_leds(led, led, led);
+	return led;
 }
 
 ISR(TIMER1_COMPA_vect) {
 	static uint8_t pos = 0;
-	wheel(pos);
+	apa102_set_all_leds(wheel(pos), wheel(pos + 85), wheel(pos + 170));
 	pos++;
 }
 
