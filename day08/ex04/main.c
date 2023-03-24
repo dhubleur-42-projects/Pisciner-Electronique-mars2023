@@ -92,7 +92,7 @@ char *ft_strchr(char *str, char c) {
 }
 
 apa102_led wheel(uint8_t pos) {
-	apa102_led led = {0x03, 0, 0, 0};
+	apa102_led led = {0x1f, 0, 0, 0};
 	pos = 255 - pos;
 	if (pos < 85) {
 		led.r = 255 - pos * 3;
