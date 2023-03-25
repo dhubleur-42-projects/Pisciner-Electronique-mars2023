@@ -65,6 +65,15 @@ void i2c_start(uint8_t address, I2C_MODE mode) {
 	wait_i2c();
 }
 
+void i2c_start_big_address(uint8_t address, I2C_MODE mode) {
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+	wait_i2c();
+
+	TWDR = address| mode;
+	TWCR = (1<<TWINT) | (1<<TWEN);
+	wait_i2c();
+}
+
 void i2c_stop(void) {
 	TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 }
@@ -143,14 +152,14 @@ void i2c_expander_set_pin(uint8_t address, I2C_EXPANDER_PORT port, uint8_t pin, 
 
 volatile int i2c_7segment[4] = {-1, -1, -1, -1};
 
-void i2c_7segment_display() {
-	i2c_7segment_write_number(i2c_7segment[3], 0);
+void i2c_7segment_display(int middle_points) {
+	i2c_7segment_write_number(i2c_7segment[3], !!middle_points);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 7, 0);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 7, 1);
 	i2c_7segment_write_number(i2c_7segment[2], 0);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 6, 0);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 6, 1);
-	i2c_7segment_write_number(i2c_7segment[1], 0);
+	i2c_7segment_write_number(i2c_7segment[1], !!middle_points);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 5, 0);
 	i2c_expander_set_pin(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 5, 1);
 	i2c_7segment_write_number(i2c_7segment[0], 0);
@@ -312,4 +321,61 @@ void read_temp_sensor(int32_t res[2]) {
 	
 	res[0] = temperature;
 	res[1] = humidity;
+}
+
+void read_rt_clock(uint8_t res[7]) {
+	i2c_start_big_address(RTC_ADDR, I2C_WRITE);
+	i2c_write(0x02);
+	i2c_start_big_address(RTC_ADDR, I2C_READ);
+	for (int i = 0; i < 7; i++) {
+		res[i] = i2c_read(i != 6);
+	}
+	i2c_stop();
+}
+
+uint8_t dec_to_bcd(uint8_t value) {
+	uint8_t ten = value / 10;
+	uint8_t unit = value % 10;
+	return (ten << 4) | unit;
+}
+
+uint8_t rtc_get_minutes(uint8_t reg[7]) {
+	uint8_t ten = (reg[1] & 0b01110000) >> 4;
+	uint8_t unit = reg[1] & 0b00001111;
+	return ten * 10 + unit;
+}
+
+uint8_t rtc_get_hours(uint8_t reg[7]) {
+	uint8_t ten = (reg[2] & 0b00110000) >> 4;
+	uint8_t unit = reg[2] & 0b00001111;
+	return ten * 10 + unit;
+}
+
+uint8_t rtc_get_day(uint8_t reg[7]) {
+	uint8_t ten = (reg[3] & 0b00110000) >> 4;
+	uint8_t unit = reg[3] & 0b00001111;
+	return ten * 10 + unit;
+}
+
+uint8_t rtc_get_month(uint8_t reg[7]) {
+	return reg[5] & 0b00011111;
+}
+
+uint32_t rtc_get_year(uint8_t reg[7]) {
+	uint8_t ten = (reg[6] & 0b11110000) >> 4;
+	uint8_t unit = reg[6] & 0b00001111;
+	return 2000 + ten * 10 + unit;
+}
+
+void set_rt_clock(uint8_t secondes, uint8_t minutes, uint8_t hours, uint8_t day, uint8_t month, uint32_t year) {
+	i2c_start_big_address(RTC_ADDR, I2C_WRITE);
+	i2c_write(0x02);
+	i2c_write(dec_to_bcd(secondes));
+	i2c_write(dec_to_bcd(minutes));
+	i2c_write(dec_to_bcd(hours));
+	i2c_write(dec_to_bcd(day));
+	i2c_write(dec_to_bcd(0));
+	i2c_write(dec_to_bcd(month));
+	i2c_write(dec_to_bcd(year % 100));
+	i2c_stop();
 }

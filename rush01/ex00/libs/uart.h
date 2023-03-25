@@ -28,5 +28,6 @@ void uart_print_byte_hexa(uint8_t n);
 char uart_readchar(void);
 void uart_readline(char *buffer, int size, char echo);
 void bzero(char *s, int n);
+void start_uart_async_readline(readline_callback callback, char echo);
 
 #endif
