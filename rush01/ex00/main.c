@@ -334,9 +334,9 @@ void rtc_actions() {
 
 int main() {
 	init();
+	start();
 	start_uart_async_readline(uart_callback, 0);
 	uart_printstr("> ");
-	// start();
 	for(int i = 0;;i++) {
 		sw_actions();
 		adc_actions();
