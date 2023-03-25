@@ -224,6 +224,50 @@ void i2c_7segment_write_numbers(uint32_t n) {
 	}
 }
 
+void i2c_7segment_write_numbers_signed(int32_t n) {
+	if (n < -999) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = -1;
+		i2c_7segment[2] = -1;
+		i2c_7segment[3] = -1;
+	} else if (n < -99) {
+		i2c_7segment[0] = 10;
+		i2c_7segment[1] = -n / 100;
+		i2c_7segment[2] = (-n / 10) % 10;
+		i2c_7segment[3] = -n % 10;
+	} else if (n < -9) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = 10;
+		i2c_7segment[2] = -n / 10;
+		i2c_7segment[3] = -n % 10;
+	} else if (n < 0) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = -1;
+		i2c_7segment[2] = 10;
+		i2c_7segment[3] = -n;
+	} else if (n < 10) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = -1;
+		i2c_7segment[2] = -1;
+		i2c_7segment[3] = n;
+	} else if (n < 100) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = -1;
+		i2c_7segment[2] = n / 10;
+		i2c_7segment[3] = n % 10;
+	} else if (n < 1000) {
+		i2c_7segment[0] = -1;
+		i2c_7segment[1] = n / 100;
+		i2c_7segment[2] = (n / 10) % 10;
+		i2c_7segment[3] = n % 10;
+	} else if (n < 10000) {
+		i2c_7segment[0] = n / 1000;
+		i2c_7segment[1] = (n / 100) % 10;
+		i2c_7segment[2] = (n / 10) % 10;
+		i2c_7segment[3] = n % 10;
+	}
+}
+
 void i2c_7segment_set_digit(int digit, int n) {
 	i2c_7segment[digit] = n;
 }
@@ -233,4 +277,39 @@ void i2c_7segment_clear() {
 	i2c_7segment[1] = -1;
 	i2c_7segment[2] = -1;
 	i2c_7segment[3] = -1;
+}
+
+void read_temp_sensor(int32_t res[2]) {
+	i2c_start(AHTR20_ADDR, I2C_WRITE);
+
+	i2c_write(0xac);
+	i2c_write(0x33);
+	i2c_write(0x00);
+	i2c_stop();
+
+	_delay_ms(80);
+
+	i2c_start(AHTR20_ADDR, I2C_READ);
+
+	uint8_t buffer[7];
+
+	uint8_t read_byte = i2c_read(1);
+	while (read_byte & 0b10000000) {
+		_delay_ms(80);
+		read_byte = i2c_read(1);
+	}
+	buffer[0] = read_byte;
+	
+	for (int i = 0; i < 6; i++) {
+		buffer[i + 1] = i2c_read(i != 5);
+	}
+	i2c_stop();
+	int32_t humidity = ((int32_t)buffer[1] << 12) | ((int32_t)buffer[2] << 4) | ((int32_t)buffer[3] & 0b11110000 >> 4);
+	int32_t temperature = (((int32_t)buffer[3] & 0b00001111) << 16) | ((int32_t)buffer[4] << 8) | (int32_t)buffer[5];
+
+	temperature = (temperature * 25 >> 17) - 50;
+	humidity = (humidity * 250) >> 18;
+	
+	res[0] = temperature;
+	res[1] = humidity;
 }

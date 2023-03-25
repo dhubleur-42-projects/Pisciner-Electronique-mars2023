@@ -2,11 +2,13 @@
 # define I2C_H
 
 # include <avr/io.h>
+# include <util/delay.h>
 # include "uart.h"
 
 # define SCL_FREQUENCY 100000
 # define TWI_BITRATE (((F_CPU / SCL_FREQUENCY) - 16) / 2)
 # define I2C_EXPANDER_ADDR 0x20
+#define AHTR20_ADDR 0x38
 
 typedef enum e_I2C_MODE {
 	I2C_WRITE = 0,
@@ -46,5 +48,7 @@ void i2c_expander_init();
 int i2c_expander_get_pin(uint8_t address, I2C_EXPANDER_PORT port, uint8_t pin);
 void i2c_7segment_display();
 void i2c_7segment_clear();
+void read_temp_sensor(int32_t res[2]);
+void i2c_7segment_write_numbers_signed(int32_t n);
 
 #endif

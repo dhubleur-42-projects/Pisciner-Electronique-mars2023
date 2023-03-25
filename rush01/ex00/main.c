@@ -58,6 +58,8 @@ volatile int mode = 0;
 
 volatile int mode4_state = 0;
 
+volatile int temp_read = 0;
+
 ISR(TIMER1_COMPA_vect) {
 	if(mode == 4) {
 		mode4_state++;
@@ -83,6 +85,9 @@ ISR(TIMER1_COMPA_vect) {
 			apa102_led led = {0x03, 0, 0, 255};
 			apa102_set_all_leds(led, led, led);
 		}
+	}
+	if (mode >= 5 && mode <= 7) {
+		temp_read = 1;
 	}
 }
 
@@ -117,6 +122,21 @@ void stop_mode4() {
 	apa102_set_all_leds(null_led, null_led, null_led);
 }
 
+void init_temp_timer() {
+	TCNT1 = 0;
+	TCCR1B = (1 << CS12);
+	TCCR1B |= (1 << WGM12);
+	OCR1A = 62500;
+	TIMSK1 = (1 << OCIE1A);
+}
+
+void stop_temp_timer() {
+	TCNT1 = 0;
+	TCCR1B = 0;
+	TIMSK1 = 0;
+	OCR1A = 0;
+}
+
 void sw_actions() {
 	int readed_sw1 = button_pressed(BUTTON_SW1);
 	if (readed_sw1 != sw1_state) {
@@ -138,6 +158,10 @@ void sw_actions() {
 			} 
 			if (mode == 5) {
 				stop_mode4();
+				init_temp_timer();
+			}
+			if (mode == 8) {
+				stop_temp_timer();
 			}
 			uart_printstr("Mode: ");
 			uart_printnbr(mode);
@@ -159,7 +183,11 @@ void sw_actions() {
 			if (mode < 0) {
 				mode = 9;
 			}
+			if (mode == 7) {
+				init_temp_timer();
+			}
 			if (mode == 4) {
+				stop_temp_timer();
 				init_mode4();
 			} 
 			if (mode == 3) {
@@ -201,6 +229,24 @@ void adc_actions() {
 	}
 }
 
+void temp_actions() {
+	if (temp_read && mode >= 5 && mode <= 7) {
+		temp_read = 0;
+		int32_t res[2] = {0, 0};
+		read_temp_sensor(res);
+		if (res[0] > -10) {
+			if (mode == 5) {
+				i2c_7segment_write_numbers_signed(res[0]);
+			} else if (mode == 6) {
+				int32_t as_farenheit = (res[0] * 9 / 5) + 32;
+				i2c_7segment_write_numbers_signed(as_farenheit);
+			} else if (mode == 7) {
+				i2c_7segment_write_numbers_signed(res[1] / 10);
+			}
+		}
+	}
+}
+
 int main() {
 	init();
 	uart_printstrln("Board initialized");
@@ -208,6 +254,7 @@ int main() {
 	for(int i = 0;;i++) {
 		sw_actions();
 		adc_actions();
+		temp_actions();
 
 		display_mode();
 		i2c_7segment_display();
