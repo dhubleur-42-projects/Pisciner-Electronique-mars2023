@@ -192,3 +192,54 @@ void bzero(char *s, int n) {
 		s[i] = 0;
 	}
 }
+
+char buffer[UART_RX_BUFFER_SIZE + 1];
+int buffer_index = 0;
+readline_callback callback = 0;
+char readline_echo = 0;
+
+ISR(USART_RX_vect) {
+	char c = UDR0;
+	//Enter
+		if (c == '\r') {
+			if (buffer_index == 0)
+				return;
+			uart_printstr("\r\n");
+			if (callback != 0) {
+				callback(buffer);
+				UCSR0B &= ~(1<<RXCIE0);
+			}
+			return;
+		}
+
+		//Backspace
+		if (c == 0x7f) {
+			if (buffer_index > 0) {
+				buffer_index -= 1;
+				buffer[buffer_index] = 0;
+				uart_printstr("\b \b");
+				return;
+			}
+		}
+
+		//Other
+		if (buffer_index < UART_RX_BUFFER_SIZE) {
+			buffer[buffer_index] = c;
+			buffer_index += 1;
+		} else {
+			return;
+		}
+
+		//Echo
+		if (readline_echo == 0)
+			uart_printchar(c);
+		else
+			uart_printchar(readline_echo);
+}
+
+void start_uart_async_readline(readline_callback callback, char echo) {
+	bzero(buffer, 100);
+	buffer_index = 0;
+	UCSR0B |= (1<<RXCIE0);
+	readline_echo = echo;
+}

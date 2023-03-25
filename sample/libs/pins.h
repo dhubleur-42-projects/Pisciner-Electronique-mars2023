@@ -12,7 +12,10 @@ typedef enum e_pin {
 	BUTTON_SW2 = 5,
 	LED_RGB_R = 6,
 	LED_RGB_G = 7,
-	LED_RGB_B = 8
+	LED_RGB_B = 8,
+	POTENTIOMETER = 9,
+	LDR = 10,
+	NTC = 11,
 } PIN;
 
 typedef enum e_pin_mode {
@@ -30,5 +33,7 @@ void pin_mode(PIN pin, PIN_MODE mode);
 void pin_set(PIN pin, PIN_STATE state);
 PIN_STATE pin_state(PIN pin);
 PIN_STATE button_pressed(PIN pin);
+void adc_init();
+uint8_t adc_read(PIN pin);
 
 #endif

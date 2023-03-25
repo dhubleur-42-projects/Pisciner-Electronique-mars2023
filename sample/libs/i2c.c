@@ -99,3 +99,128 @@ int8_t i2c_expander_read_port(uint8_t address, I2C_EXPANDER_PORT port) {
 	i2c_stop();
 	return data;
 }
+
+volatile uint8_t output_port1_value = 0b11111111;
+volatile uint8_t output_port0_value = 0b11111111;
+
+void i2c_expander_write_port(uint8_t address, I2C_EXPANDER_PORT port, uint8_t data) {
+	i2c_start(address, I2C_WRITE);
+	i2c_write(port);
+	i2c_write(data);
+	i2c_stop();
+	if (port == OUTPUT_PORT_1) {
+		output_port1_value = data;
+	} else if (port == OUTPUT_PORT_0) {
+		output_port0_value = data;
+	}
+}
+
+void i2c_expander_set_pin(uint8_t address, I2C_EXPANDER_PORT port, uint8_t pin, uint8_t value) {
+	if (port == OUTPUT_PORT_1) {
+		if (value == 1) {
+			output_port1_value |= (1<<pin);
+		} else {
+			output_port1_value &= ~(1<<pin);
+		}
+		i2c_expander_write_port(address, port, output_port1_value);
+	} else if (port == OUTPUT_PORT_0) {
+		if (value == 1) {
+			output_port0_value |= (1<<pin);
+		} else {
+			output_port0_value &= ~(1<<pin);
+		}
+		i2c_expander_write_port(address, port, output_port0_value);
+	}
+}
+
+volatile int i2c_7segment[4] = {-1, -1, -1, -1};
+
+ISR(TIMER0_COMPA_vect) {
+	TIMSK0 &= ~(1 << OCIE0A);
+	i2c_7segment_write_number(-1, 0);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 0b01111111);
+	i2c_7segment_write_number(i2c_7segment[3], 0);
+	i2c_7segment_write_number(-1, 0);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 0b10111111);
+	i2c_7segment_write_number(i2c_7segment[2], 0);
+	i2c_7segment_write_number(-1, 0);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 0b11011111);
+	i2c_7segment_write_number(i2c_7segment[1], 0);
+	i2c_7segment_write_number(-1, 0);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 0b11101111);
+	i2c_7segment_write_number(i2c_7segment[0], 0);
+	TIMSK0 |= (1 << OCIE0A);
+}
+
+void i2c_7segment_init() {
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, CONFIGURATION_PORT_0, 0b00000001);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, CONFIGURATION_PORT_1, 0b00000000);
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_0, 0b11111111);
+	i2c_7segment_write_number(-1, 0);
+	TCCR0A |= (1 << WGM01);
+	TCCR0B |= (1 << CS00) | (1 << CS02);
+	OCR0A = 0x3C;
+	TIMSK0 |= (1 << OCIE0A);
+}
+
+void i2c_7segment_write_number(int n, int dot) {
+	uint8_t data = 0b00000000;
+	if (dot) {
+		data |= 0b10000000;
+	}
+	if (n == 0) {
+		data |= 0b00111111;
+	} else if (n == 1) {
+		data |= 0b00000110;
+	} else if (n == 2) {
+		data |= 0b01011011;
+	} else if (n == 3) {
+		data |= 0b01001111;
+	} else if (n == 4) {
+		data |= 0b01100110;
+	} else if (n == 5) {
+		data |= 0b01101101;
+	} else if (n == 6) {
+		data |= 0b01111101;
+	} else if (n == 7) {
+		data |= 0b00000111;
+	} else if (n == 8) {
+		data |= 0b01111111;
+	} else if (n == 9) {
+		data |= 0b01101111;
+	}
+	i2c_expander_write_port(I2C_EXPANDER_ADDR, OUTPUT_PORT_1, data);
+}
+
+void i2c_7segment_write_numbers(int16_t n) {
+	if (n < 0) {
+		i2c_7segment[0] = 0;
+		i2c_7segment[1] = 0;
+		i2c_7segment[2] = 0;
+		i2c_7segment[3] = 0;
+	} else if (n < 10) {
+		i2c_7segment[0] = 0;
+		i2c_7segment[1] = 0;
+		i2c_7segment[2] = 0;
+		i2c_7segment[3] = n;
+	} else if (n < 100) {
+		i2c_7segment[0] = 0;
+		i2c_7segment[1] = 0;
+		i2c_7segment[2] = n / 10;
+		i2c_7segment[3] = n % 10;
+	} else if (n < 1000) {
+		i2c_7segment[0] = 0;
+		i2c_7segment[1] = n / 100;
+		i2c_7segment[2] = (n / 10) % 10;
+		i2c_7segment[3] = n % 10;
+	} else if (n < 10000) {
+		i2c_7segment[0] = n / 1000;
+		i2c_7segment[1] = (n / 100) % 10;
+		i2c_7segment[2] = (n / 10) % 10;
+		i2c_7segment[3] = n % 10;
+	}
+}
+
+void i2c_7segment_set_digit(int digit, int n) {
+	i2c_7segment[digit] = n;
+}

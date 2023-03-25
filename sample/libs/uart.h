@@ -2,8 +2,14 @@
 # define UART_H
 
 # include <avr/io.h>
+# include <avr/interrupt.h>
 
 # define UART_BAUDRATE 115200
+
+# define UART_RX_BUFFER_SIZE 100
+
+
+typedef void (*readline_callback)(char *);
 
 void uart_init();
 void uart_printchar(char c);
