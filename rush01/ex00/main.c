@@ -334,7 +334,6 @@ void rtc_actions() {
 
 int main() {
 	init();
-	set_rt_clock(30, 24, 15, 25, 3, 2023);
 	start_uart_async_readline(uart_callback, 0);
 	uart_printstr("> ");
 	// start();
