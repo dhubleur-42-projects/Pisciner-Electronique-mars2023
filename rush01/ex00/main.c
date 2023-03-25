@@ -144,7 +144,7 @@ void sw_actions() {
 		if (sw1_state == 1) {
 			i2c_7segment_clear();
 			mode++;
-			if (mode > 11) {
+			if (mode > 10) {
 				mode = 0;
 			}
 			if (mode == 4) {
