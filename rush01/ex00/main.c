@@ -59,7 +59,29 @@ volatile int mode4_state = 0;
 
 volatile int make_measure = 0;
 
+apa102_led wheel(uint8_t pos) {
+	apa102_led led = {0x1f, 0, 0, 0};
+	pos = 255 - pos;
+	if (pos < 85) {
+		led.r = 255 - pos * 3;
+		led.g = 0;
+		led.b = pos * 3;
+	} else if (pos < 170) {
+		pos = pos - 85;
+		led.r = 0;
+		led.g = pos * 3;
+		led.b = 255 - pos * 3;
+	} else {
+		pos = pos - 170;
+		led.r = pos * 3;
+		led.g = 255 - pos * 3;
+		led.b = 0;
+	}
+	return led;
+}
+
 ISR(TIMER1_COMPA_vect) {
+	static uint8_t unicorn_pos = 0;
 	if(mode == 4) {
 		mode4_state++;
 		if (mode4_state > 3) {
@@ -87,6 +109,10 @@ ISR(TIMER1_COMPA_vect) {
 	}
 	if (mode >= 5 && mode <= 10) {
 		make_measure = 1;
+	}
+	if (mode == 11) {
+		apa102_set_all_leds(wheel(unicorn_pos), wheel(unicorn_pos + 85), wheel(unicorn_pos + 170));
+		unicorn_pos++;
 	}
 }
 
@@ -136,6 +162,20 @@ void stop_measure_timer() {
 	OCR1A = 0;
 }
 
+void init_unicorn() {
+	TCCR1B |= (1 << WGM12) | (1 << CS12) | (1 << CS10);
+	OCR1A = (F_CPU / 1024) / 255;
+	TIMSK1 |= (1 << OCIE1A);
+}
+
+void stop_unicorn() {
+	TCNT1 = 0;
+	TCCR1B = 0;
+	TIMSK1 = 0;
+	OCR1A = 0;
+	apa102_set_all_leds(null_led, null_led, null_led);
+}
+
 void sw_actions() {
 	int readed_sw1 = button_pressed(BUTTON_SW1);
 	if (readed_sw1 != sw1_state) {
@@ -144,7 +184,7 @@ void sw_actions() {
 		if (sw1_state == 1) {
 			i2c_7segment_clear();
 			mode++;
-			if (mode > 10) {
+			if (mode > 11) {
 				mode = 0;
 			}
 			if (mode == 4) {
@@ -154,8 +194,12 @@ void sw_actions() {
 				stop_mode4();
 				init_measure_timer();
 			}
-			if (mode == 0) {
+			if (mode == 11) {
 				stop_measure_timer();
+				init_unicorn();
+			}
+			if (mode == 0) {
+				stop_unicorn();
 			}
 		}
 	}
@@ -167,9 +211,13 @@ void sw_actions() {
 			i2c_7segment_clear();
 			mode--;
 			if (mode < 0) {
-				mode = 10;
+				mode = 11;
+			}
+			if (mode == 11) {
+				init_unicorn();
 			}
 			if (mode == 10) {
+				stop_unicorn();
 				init_measure_timer();
 			}
 			if (mode == 4) {
@@ -193,6 +241,9 @@ void display_mode() {
 	pin_set(LED_D2, (mode & 2) ? HIGH : LOW);
 	pin_set(LED_D3, (mode & 4) ? HIGH : LOW);
 	pin_set(LED_D4, (mode & 8) ? HIGH : LOW);
+	if (mode != 4 && mode != 11) {
+		apa102_set_all_leds(null_led, null_led, null_led);
+	}
 }
 
 void adc_actions() {
